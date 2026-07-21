@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HOF Migration — Dubai Office Client Visits</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* HOF brand palette */
+    --navy:#16205E; --royal:#243A9E; --royal-2:#2E4AC6; --steel:#868E9B;
+    --ink:#131A38; --ink-soft:#3B4468;
+    --canvas:#ECEFF7; --card:#FFFFFF; --line:#E1E5F1; --field:#F5F7FC;
+    --success:#1E7A46; --success-bg:#E7F3EC; --success-line:#BFE0CC;
+    --danger:#C0392B; --danger-bg:#FBECEA; --danger-line:#F1CFCB;
+    /* fonts */
+    --f-display:"Fraunces", Georgia, "Times New Roman", serif;
+    --f-body:"Plus Jakarta Sans", -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    --f-mono:"DM Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    --r:16px; --r-sm:11px;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--canvas);color:var(--ink);
+    font-family:var(--f-body);font-size:15.5px;line-height:1.55;
+    font-optical-sizing:auto;-webkit-font-smoothing:antialiased}
+  h1,h2,h3{font-family:var(--f-display);font-weight:500;font-optical-sizing:auto;margin:0}
+  a{color:var(--royal)}
+
+  .eyebrow{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.22em;
+    text-transform:uppercase;color:var(--royal);font-weight:500}
+
+  /* hexagon mark (echoes the HOF logo) */
+  .hexmark{width:30px;height:33px;flex:0 0 auto;display:block}
+
+  /* ---------- top bar ---------- */
+  .topbar{background:var(--card);border-bottom:1px solid var(--line)}
+  .topbar-in{max-width:960px;margin:0 auto;padding:14px 22px;
+    display:flex;align-items:center;justify-content:space-between;gap:16px}
+  .brand{display:flex;align-items:center;gap:11px}
+  .brand-name{font-weight:600;letter-spacing:.2px;color:var(--navy);font-size:16.5px}
+  .brand-name b{color:var(--royal);font-weight:700}
+  .topbar-tag{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--steel)}
+
+  /* ---------- hero ---------- */
+  .hero{position:relative;background:var(--navy);overflow:hidden;isolation:isolate}
+  .hero::after{content:"";position:absolute;inset:0;z-index:-1;
+    background:radial-gradient(120% 120% at 82% -10%, rgba(46,74,198,.55) 0%, rgba(22,32,94,0) 55%)}
+  .hero-deco{position:absolute;top:-40px;right:-70px;z-index:-1;opacity:.5;pointer-events:none}
+  .hero-in{max-width:960px;margin:0 auto;padding:56px 22px 92px}
+  .hero .eyebrow{color:#9FB0F0}
+  .hero h1{color:#fff;font-size:clamp(32px,6vw,54px);line-height:1.02;
+    letter-spacing:-.015em;margin:16px 0 0;max-width:16ch}
+  .hero-sub{color:#C6CFEC;font-size:clamp(15px,2.2vw,18px);margin:18px 0 0;max-width:52ch}
+  .chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+  .chip{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;
+    background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);
+    color:#DBE2F6;font-size:13px;font-weight:500}
+  .chip .dot{width:6px;height:6px;border-radius:50%;background:#7E93EE}
+
+  /* ---------- stage / cards ---------- */
+  .stage{max-width:680px;margin:-60px auto 0;padding:0 18px;position:relative;z-index:2}
+
+  .formcard,.donecard{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+    box-shadow:0 24px 60px -28px rgba(19,26,56,.42),0 4px 14px -8px rgba(19,26,56,.18)}
+  .panel-head{padding:26px 28px 4px}
+  .panel-head h2{color:var(--navy);font-size:26px;letter-spacing:-.01em}
+  .panel-head p{margin:6px 0 0;color:var(--steel);font-size:14px}
+  .panel-body{padding:6px 28px 26px}
+
+  .group{padding:22px 0;border-bottom:1px solid var(--line)}
+  .group:last-of-type{border-bottom:0}
+  .glabel{display:flex;align-items:center;gap:9px;margin-bottom:15px;
+    font-family:var(--f-mono);font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--navy)}
+  .glabel::before{content:"";width:11px;height:12px;background:var(--royal);
+    clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);flex:0 0 auto}
+
+  label.field{display:block;margin-bottom:15px}
+  label.field:last-child{margin-bottom:0}
+  .flabel{display:block;font-size:13.5px;font-weight:600;color:var(--ink-soft);margin-bottom:7px}
+  .opt{color:var(--steel);font-weight:500}
+  .hint{font-size:12.5px;color:var(--steel);margin:7px 0 0}
+
+  input[type=text],input[type=number],input[type=date],input[type=url],select,textarea{
+    width:100%;padding:12px 13px;font:inherit;color:var(--ink);background:var(--field);
+    border:1px solid var(--line);border-radius:var(--r-sm);-webkit-appearance:none;appearance:none;transition:border-color .12s,box-shadow .12s}
+  input::placeholder,textarea::placeholder{color:#A6AEC4}
+  select{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' stroke='%23243A9E' stroke-width='1.7' fill='none' stroke-linecap='round'/></svg>");
+    background-repeat:no-repeat;background-position:right 13px center;padding-right:36px;cursor:pointer}
+  textarea{min-height:94px;resize:vertical}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--royal);
+    box-shadow:0 0 0 3px rgba(36,58,158,.16)}
+  input:disabled,select:disabled{background:#EDEFF6;color:#9AA2BA;cursor:not-allowed}
+
+  .two{display:flex;gap:13px}
+  .two > *{flex:1;min-width:0}
+
+  /* segmented radios */
+  .seg{display:flex;gap:8px;flex-wrap:wrap}
+  .seg label{flex:1;min-width:120px;position:relative}
+  .seg input{position:absolute;opacity:0;pointer-events:none}
+  .seg span{display:block;text-align:center;padding:12px 10px;border:1px solid var(--line);
+    border-radius:var(--r-sm);background:var(--field);font-size:14px;font-weight:500;color:var(--ink-soft);cursor:pointer;transition:.12s}
+  .seg span:hover{border-color:#C6CDE6}
+  .seg input:checked + span{background:var(--royal);border-color:var(--royal);color:#fff}
+  .seg input:focus-visible + span{box-shadow:0 0 0 3px rgba(36,58,158,.30)}
+
+  .amount-row{display:flex;align-items:stretch}
+  .aed{display:flex;align-items:center;padding:0 15px;background:var(--navy);color:#fff;
+    font-family:var(--f-mono);font-weight:500;border-radius:var(--r-sm) 0 0 var(--r-sm);font-size:13.5px;letter-spacing:.04em}
+  .amount-row input{border-radius:0 var(--r-sm) var(--r-sm) 0;border-left:0;font-variant-numeric:tabular-nums}
+
+  /* installments */
+  .inst{border:1px solid var(--line);border-radius:var(--r-sm);padding:15px;margin-top:11px;background:var(--field)}
+  .inst-row{display:flex;gap:11px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+  .inst-row:last-child{margin-bottom:0}
+  .inst-n{font-family:var(--f-mono);font-size:11.5px;font-weight:500;color:#fff;background:var(--royal);
+    padding:6px 11px;border-radius:999px;min-width:112px;text-align:center;letter-spacing:.02em}
+  .inst-row .amt{flex:1;min-width:120px;font-variant-numeric:tabular-nums}
+  .inst-row .dt{flex:1.2;min-width:150px}
+  .chk{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--steel);white-space:nowrap;cursor:pointer}
+  .chk input{width:auto;-webkit-appearance:auto;appearance:auto;accent-color:var(--royal)}
+
+  .avail-note{font-size:12.5px;color:var(--steel);margin:0 0 9px;min-height:18px}
+  .avail-note b{color:var(--ink-soft)}
+  #startTime option:disabled{color:#B7BECF}
+
+  .hidden{display:none !important}
+
+  /* submit + banners */
+  .submit{width:100%;padding:15px;background:var(--royal);color:#fff;border:0;border-radius:12px;
+    font-family:var(--f-body);font-weight:700;font-size:15.5px;letter-spacing:.2px;cursor:pointer;
+    margin-top:22px;transition:.14s;box-shadow:0 10px 22px -12px rgba(36,58,158,.7)}
+  .submit:hover:not(:disabled){background:var(--royal-2)}
+  .submit:active:not(:disabled){transform:translateY(1px)}
+  .submit:disabled{opacity:.6;cursor:progress}
+  .banner{border-radius:var(--r-sm);padding:13px 15px;font-size:14px;margin-top:15px;line-height:1.45}
+  .banner.err{background:var(--danger-bg);color:#8A241B;border:1px solid var(--danger-line)}
+
+  /* success */
+  .donecard{margin-top:0;padding:40px 30px;text-align:center}
+  .done-badge{width:60px;height:66px;margin:0 auto 18px;position:relative}
+  .done-badge svg{width:100%;height:100%}
+  .done-badge .tick{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    color:#fff;font-size:26px;line-height:1}
+  .donecard h2{font-size:27px;color:var(--navy);margin-bottom:8px}
+  .donecard p{color:var(--ink-soft);margin:0 auto 6px;max-width:44ch;font-size:15px}
+  .donecard .when{font-family:var(--f-mono);font-weight:500;color:var(--royal);font-size:15px;letter-spacing:.01em}
+  .linkbtn{display:inline-block;margin-top:22px;background:var(--navy);color:#fff;text-decoration:none;
+    padding:13px 24px;border-radius:12px;font-weight:600;font-size:14.5px;cursor:pointer;border:0;font-family:var(--f-body)}
+  .linkbtn:hover{background:#1E2A73}
+
+  /* how it works (a real 3-step sequence) */
+  .how{max-width:960px;margin:64px auto 0;padding:0 22px}
+  .how-head{margin-bottom:22px}
+  .how-head h2{color:var(--navy);font-size:24px;margin-top:8px;letter-spacing:-.01em}
+  .steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;counter-reset:none}
+  .steps li{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:22px 20px}
+  .step-n{font-family:var(--f-mono);font-size:13px;font-weight:500;color:var(--royal);letter-spacing:.06em}
+  .steps h3{font-size:19px;color:var(--navy);margin:12px 0 6px;font-weight:600}
+  .steps p{margin:0;color:var(--steel);font-size:13.5px;line-height:1.5}
+
+  /* footer */
+  .site-foot{max-width:960px;margin:56px auto 0;padding:26px 22px 48px;
+    border-top:1px solid var(--line);display:flex;align-items:center;gap:13px;flex-wrap:wrap}
+  .site-foot .hexmark{width:24px;height:26px}
+  .site-foot p{margin:0;color:var(--steel);font-size:12.5px;line-height:1.5}
+  .site-foot b{color:var(--ink-soft);font-weight:600}
+
+  /* motion (one gentle load moment) */
+  @media (prefers-reduced-motion:no-preference){
+    .hero .eyebrow,.hero h1,.hero-sub,.chips{opacity:0;transform:translateY(10px);animation:rise .6s cubic-bezier(.2,.7,.2,1) forwards}
+    .hero h1{animation-delay:.06s}.hero-sub{animation-delay:.12s}.chips{animation-delay:.18s}
+    .stage{opacity:0;transform:translateY(14px);animation:rise .6s cubic-bezier(.2,.7,.2,1) .16s forwards}
+    @keyframes rise{to{opacity:1;transform:none}}
+  }
+
+  @media (max-width:720px){
+    .steps{grid-template-columns:1fr}
+    .hero-in{padding:44px 20px 88px}
+  }
+  @media (max-width:480px){
+    .two{flex-direction:column;gap:15px}
+    .seg label{min-width:100%}
+    .inst-n{min-width:100%}
+    .topbar-tag{display:none}
+  }
+</style>
+</head>
+<body>
+
+  <!-- brand bar -->
+  <div class="topbar">
+    <div class="topbar-in">
+      <div class="brand">
+        <svg class="hexmark" viewBox="0 0 48 52" fill="none" aria-hidden="true">
+          <path d="M24 2 44 14 44 38 24 50 4 38 4 14Z" fill="#16205E"/>
+          <path d="M24 13.5 34.4 19.5 34.4 31.5 24 37.5 13.6 31.5 13.6 19.5Z" fill="none" stroke="#2E4AC6" stroke-width="2.4"/>
+        </svg>
+        <span class="brand-name">HOF&nbsp;<b>Migration</b></span>
+      </div>
+      <div class="topbar-tag">Dubai Office &middot; Client Visits</div>
+    </div>
+  </div>
+
+  <!-- hero -->
+  <header class="hero">
+    <svg class="hero-deco" width="440" height="440" viewBox="0 0 440 440" fill="none" aria-hidden="true">
+      <path d="M220 40 360 120 360 280 220 360 80 280 80 120Z" stroke="#5C72E0" stroke-width="1.4" opacity=".5"/>
+      <path d="M220 100 308 150 308 250 220 300 132 250 132 150Z" stroke="#8598F0" stroke-width="1.4" opacity=".4"/>
+      <path d="M220 160 256 181 256 223 220 244 184 223 184 181Z" fill="#2E4AC6" opacity=".28"/>
+    </svg>
+    <div class="hero-in">
+      <div class="eyebrow">Dubai Office Scheduling</div>
+      <h1>Book a client visit to the Dubai office</h1>
+      <p class="hero-sub">Pick a time that suits your client. The manager you choose approves it, and everyone gets an email confirmation.</p>
+      <div class="chips">
+        <span class="chip"><span class="dot"></span>All times Dubai &middot; GST (UTC+4)</span>
+        <span class="chip"><span class="dot"></span>Manager-approved</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="stage">
+
+      <!-- FORM -->
+      <section class="formcard" id="formCard">
+        <div class="panel-head">
+          <h2>Request a visit</h2>
+          <p>Fields marked optional can be left blank.</p>
+        </div>
+        <div class="panel-body">
+
+          <div class="group">
+            <div class="glabel">Who's meeting</div>
+            <label class="field">
+              <span class="flabel">Your name (consultant)</span>
+              <select id="consultant"><option value="">Select your name&hellip;</option></select>
+            </label>
+            <label class="field">
+              <span class="flabel">Manager to inform &amp; approve</span>
+              <select id="manager"><option value="">Select a manager&hellip;</option></select>
+            </label>
+          </div>
+
+          <div class="group" id="whenGroup">
+            <div class="glabel">When &middot; Dubai time</div>
+            <div class="two">
+              <label class="field">
+                <span class="flabel">Date</span>
+                <input type="date" id="date">
+              </label>
+              <div class="field">
+                <span class="flabel">Length</span>
+                <div class="seg" id="durSeg">
+                  <label><input type="radio" name="dur" value="30" checked><span>30 min</span></label>
+                  <label><input type="radio" name="dur" value="60"><span>1 hour</span></label>
+                </div>
+              </div>
+            </div>
+            <label class="field">
+              <span class="flabel">Start time</span>
+              <p class="avail-note" id="availNote">Choose a manager and date to see available times.</p>
+              <select id="startTime" disabled><option value="">&mdash;</option></select>
+              <p class="hint" id="tzHint"></p>
+            </label>
+          </div>
+
+          <div class="group">
+            <div class="glabel">Program &amp; deal</div>
+            <label class="field">
+              <span class="flabel">Which program is this client for?</span>
+              <select id="program"><option value="">Select a program&hellip;</option></select>
+            </label>
+            <label class="field">
+              <span class="flabel">HubSpot deal link <span class="opt">(optional)</span></span>
+              <input type="url" id="dealLink" inputmode="url"
+                     placeholder="https://app.hubspot.com/contacts/23735726/record/0-3/&hellip;">
+              <p class="hint">Paste the deal's HubSpot link so the manager can open it before approving.</p>
+            </label>
+          </div>
+
+          <div class="group">
+            <div class="glabel">Quoted fee</div>
+            <div class="field">
+              <div class="seg" id="feeSeg">
+                <label><input type="radio" name="fee" value="none" checked><span>Not quoted yet</span></label>
+                <label><input type="radio" name="fee" value="onetime"><span>One-time</span></label>
+                <label><input type="radio" name="fee" value="installments"><span>Installments</span></label>
+              </div>
+            </div>
+
+            <label class="field hidden" id="oneTimeBox">
+              <span class="flabel">Amount</span>
+              <div class="amount-row">
+                <span class="aed">AED</span>
+                <input type="number" id="oneAmount" min="0" step="1" placeholder="e.g. 25000" inputmode="numeric">
+              </div>
+            </label>
+
+            <div class="field hidden" id="instBox">
+              <span class="flabel">How many installments?</span>
+              <select id="instCount">
+                <option value="2">2</option><option value="3" selected>3</option><option value="4">4</option>
+                <option value="5">5</option><option value="6">6</option><option value="7">7</option>
+                <option value="8">8</option><option value="9">9</option><option value="10">10</option>
+                <option value="11">11</option><option value="12">12</option>
+              </select>
+              <div class="inst" id="instRows"></div>
+              <p class="hint">Enter each installment's amount and date. Tick "date not set" if a date isn't fixed yet.</p>
+            </div>
+          </div>
+
+          <div class="group">
+            <div class="glabel">Additional comments</div>
+            <label class="field">
+              <span class="flabel">Anything the manager should know <span class="opt">(optional)</span></span>
+              <textarea id="comments" placeholder="Client background, urgency, documents to prepare&hellip;"></textarea>
+            </label>
+          </div>
+
+          <div id="errBox"></div>
+          <button class="submit" id="submitBtn">Send request to manager</button>
+        </div>
+      </section>
+
+      <!-- SUCCESS (hidden until submit) -->
+      <section class="donecard hidden" id="doneCard">
+        <div class="done-badge">
+          <svg viewBox="0 0 60 66" fill="none" aria-hidden="true">
+            <path d="M30 2 55 16 55 50 30 64 5 50 5 16Z" fill="#1E7A46"/>
+          </svg>
+          <div class="tick">&#10003;</div>
+        </div>
+        <h2>Request sent</h2>
+        <p id="doneMsg"></p>
+        <p class="when" id="doneWhen"></p>
+        <p class="hint" id="doneWarn" style="margin-top:12px"></p>
+        <button class="linkbtn" id="againBtn">Book another meeting</button>
+      </section>
+
+    </div>
+
+    <!-- how it works: a genuine three-step sequence -->
+    <section class="how">
+      <div class="how-head">
+        <div class="eyebrow">The process</div>
+        <h2>How it works</h2>
+      </div>
+      <ol class="steps">
+        <li>
+          <span class="step-n">01</span>
+          <h3>Choose a slot</h3>
+          <p>Pick your name, the manager, a date and a time. Taken slots for that manager are greyed out.</p>
+        </li>
+        <li>
+          <span class="step-n">02</span>
+          <h3>Manager approves</h3>
+          <p>The manager gets an email to approve the visit or mark themselves busy for that time.</p>
+        </li>
+        <li>
+          <span class="step-n">03</span>
+          <h3>You're booked</h3>
+          <p>You get a confirmation the moment they approve. If they're busy, the slot frees up again.</p>
+        </li>
+      </ol>
+    </section>
+  </main>
+
+  <footer class="site-foot">
+    <svg class="hexmark" viewBox="0 0 48 52" fill="none" aria-hidden="true">
+      <path d="M24 2 44 14 44 38 24 50 4 38 4 14Z" fill="#16205E"/>
+      <path d="M24 13.5 34.4 19.5 34.4 31.5 24 37.5 13.6 31.5 13.6 19.5Z" fill="none" stroke="#2E4AC6" stroke-width="2.4"/>
+    </svg>
+    <p><b>HOF Migration</b> &middot; Dubai office client scheduling. All times shown in Dubai time (GST, UTC+4).</p>
+  </footer>
+
+<script>
+  /* =====================================================================
+     STEP 1 — PASTE YOUR APPS SCRIPT LINK HERE (the /exec URL from deploying Code.gs).
+     It should look like:
+       https://script.google.com/macros/s/AKfy....../exec
+     Until this is set, the form will show a "not connected yet" message.
+     ===================================================================== */
+  const API_URL = "PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE";
+
+  /* =====================================================================
+     STEP 2 — Names and settings.
+     KEEP THIS LIST IN SYNC WITH THE SAME LISTS IN Code.gs.
+     If you add/remove a consultant or manager, change it in BOTH files.
+     ===================================================================== */
+  const CFG = {
+    consultants: [
+      { name: 'Tuba Ahmad',               email: 'tuba@hofmigration.com' },
+      { name: 'Mishal Fatima Bashir',     email: 'mashal@hofmigration.com' },
+      { name: 'Rabbiya Mohsin',           email: 'rabbiya@hofmigration.com' },
+      { name: 'Muhammad Diean',           email: 'diean@hofmigration.com' },
+      { name: 'Muhammad Shahzad Fiaz',    email: 'shahzadfiaz@hofmigration.com' },
+      { name: 'Fatima Zahid',             email: 'fatimazahid@hofmigration.com' },
+      { name: 'Ayesha Zahid',             email: 'ayeshazahid@hofmigration.com' },
+      { name: 'Syed Hussain Ali Haris',   email: 'hussainshah@hofmigration.com' },
+      { name: 'Ahmad Ali',                email: 'ahmada@hofmigration.com' },
+      { name: 'Ali Raza Qureshi',         email: 'aliraza@hofmigration.com' },
+      { name: 'Mishal Naseem',            email: 'mishal@hofmigration.com' },
+      { name: 'Hamza Manzoor',            email: 'hamzaazeemi@hofmigration.com' },
+      { name: 'Atika Zainab',             email: 'atika@hofmigration.com' },
+      { name: 'Fahad Waseem',             email: 'fahad@hofmigration.com' },
+      { name: 'Muhammad Momin Ashfaq',    email: 'mominashfaq2244@gmail.com' },
+      { name: 'Hamad Ahmad',              email: 'hamadahmad5432@gmail.com' },
+      { name: 'Haleema Umar',             email: 'haleema.umar.durrani@gmail.com' },
+      { name: 'Rida Faisal',              email: 'ridafaisal@hofmigration.com' },
+      { name: 'Aiman Ali',                email: 'aimenshakeel@hofmigration.com' },
+      { name: 'Ahmed Ali Malik',          email: 'ahmed@hofmigration.com' },
+      { name: 'Muhammad Awaad bin Imran', email: 'awaad@hofmigration.com' },
+      { name: 'Muhammad Hanzla',          email: 'hanzla@hofmigration.com' }
+    ],
+    managers: [
+      { name: 'Wahab Dogar', email: 'wahab@hofmigration.com' },
+      { name: 'Jully Gill',  email: 'jully@hofmigration.com' },
+      { name: 'Aleen Naeem', email: 'aleen@hofmigration.com' },
+      { name: 'Insha Khan',  email: 'insha@hofmigration.com' },
+      { name: 'Jalal Shah',  email: 'jalal@hofmigration.com' }
+    ],
+    programs: ['USA EB2 NIW', 'Canada', 'Australia', 'Spain', 'Germany'],
+    officeStart: 9,     // 9 AM Dubai (must match Code.gs OFFICE_START_HOUR)
+    officeEnd: 21,      // meetings must end by 9 PM Dubai (OFFICE_END_HOUR)
+    slotStep: 15,       // 15-minute start increments (SLOT_STEP_MIN)
+    tzLabel: 'Dubai time (GST)'
+  };
+
+  /* =================== nothing below normally needs editing =================== */
+  const API_READY = API_URL.indexOf('PASTE_YOUR') === -1 && /^https?:\/\//.test(API_URL);
+
+  const $ = id => document.getElementById(id);
+  let availReqId = 0;      // guards against out-of-order availability responses
+  let busy = [];           // current busy intervals for chosen manager+date
+
+  /* ---- populate dropdowns ---- */
+  function fill(sel, items, toOpt){ items.forEach(it => { const o=document.createElement('option'); toOpt(o,it); sel.appendChild(o); }); }
+  fill($('consultant'), CFG.consultants, (o,c)=>{o.value=c.email; o.textContent=c.name;});
+  fill($('manager'),    CFG.managers,    (o,m)=>{o.value=m.email; o.textContent=m.name;});
+  fill($('program'),    CFG.programs,    (o,p)=>{o.value=p;       o.textContent=p;});
+  $('tzHint').textContent = 'Times shown in ' + CFG.tzLabel + '.';
+
+  /* ---- date: minimum = today in Dubai ---- */
+  const dubaiToday = new Date().toLocaleDateString('en-CA', { timeZone:'Asia/Dubai' });
+  $('date').min = dubaiToday;
+
+  /* ---- helpers ---- */
+  function fmtTime(mins){
+    let h=Math.floor(mins/60), m=mins%60, ap=h<12?'AM':'PM', h12=h%12; if(h12===0)h12=12;
+    return h12 + ':' + String(m).padStart(2,'0') + ' ' + ap;
+  }
+  function toHHMM(mins){ return String(Math.floor(mins/60)).padStart(2,'0') + ':' + String(mins%60).padStart(2,'0'); }
+  function selectedDuration(){ return Number(document.querySelector('input[name=dur]:checked').value); }
+  function selectedFee(){ return document.querySelector('input[name=fee]:checked').value; }
+
+  /* ---- availability + start-time options ---- */
+  function refreshAvailability(){
+    const mgr = $('manager').value, date = $('date').value, note = $('availNote'), sel = $('startTime');
+    if(!mgr || !date){
+      note.textContent = 'Choose a manager and date to see available times.';
+      sel.innerHTML = '<option value="">&mdash;</option>'; sel.disabled = true; return;
+    }
+    if(!API_READY){                       // form not connected yet: still let them pick, server will re-check
+      busy = []; buildStartOptions();
+      note.textContent = 'Availability check is off until the form is connected. You can still pick a time.';
+      return;
+    }
+    note.textContent = 'Loading availability\u2026'; sel.disabled = true;
+    const myReq = ++availReqId;
+    const url = API_URL + '?action=availability&manager=' + encodeURIComponent(mgr) + '&date=' + encodeURIComponent(date);
+    fetch(url, { method:'GET' })
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        if(myReq !== availReqId) return;              // a newer request already ran
+        busy = (data && data.busy) ? data.busy : [];
+        buildStartOptions();
+        const mgrName = $('manager').options[$('manager').selectedIndex].text;
+        note.innerHTML = busy.length
+          ? 'Booked slots for <b>'+mgrName+'</b> on this date are disabled below.'
+          : 'No meetings booked with <b>'+mgrName+'</b> on this date yet.';
+      })
+      .catch(function(){
+        if(myReq!==availReqId) return;
+        note.textContent = 'Could not load availability. Pick a time and we\u2019ll re-check when you submit.';
+        busy = []; buildStartOptions();
+      });
+  }
+
+  function overlaps(s, e){ return busy.some(b => s < b.endMin && e > b.startMin); }
+
+  function buildStartOptions(){
+    const sel = $('startTime'), prev = sel.value, dur = selectedDuration();
+    const startMin = CFG.officeStart*60, endMin = CFG.officeEnd*60;
+    sel.innerHTML = '<option value="">Select a time\u2026</option>';
+    let anyOpen = false;
+    for(let s=startMin; s + dur <= endMin; s += CFG.slotStep){
+      const o = document.createElement('option');
+      o.value = toHHMM(s);
+      const taken = overlaps(s, s + dur);
+      o.textContent = fmtTime(s) + (taken ? '  \u00b7  booked' : '');
+      o.disabled = taken; if(!taken) anyOpen = true;
+      sel.appendChild(o);
+    }
+    if(prev){ const keep=[...sel.options].find(o=>o.value===prev && !o.disabled); if(keep) sel.value=prev; }
+    sel.disabled = false;
+    if(!anyOpen) $('availNote').innerHTML = 'That day looks fully booked for this manager. Try another date or a 30-min slot.';
+  }
+
+  /* ---- fee section toggling ---- */
+  function updateFeeUI(){
+    const f = selectedFee();
+    $('oneTimeBox').classList.toggle('hidden', f !== 'onetime');
+    $('instBox').classList.toggle('hidden', f !== 'installments');
+    if(f === 'installments' && !$('instRows').children.length) renderInstallments();
+  }
+  function renderInstallments(){
+    const n = Number($('instCount').value), box = $('instRows');
+    box.innerHTML = '';
+    for(let i=1; i<=n; i++){
+      const row = document.createElement('div'); row.className='inst-row';
+      row.innerHTML =
+        '<span class="inst-n">Installment '+i+'</span>' +
+        '<input class="amt" type="number" min="0" step="1" placeholder="Amount (AED)" inputmode="numeric">' +
+        '<input class="dt" type="date" min="'+dubaiToday+'">' +
+        '<label class="chk"><input type="checkbox"> date not set</label>';
+      const dt = row.querySelector('.dt'), cb = row.querySelector('.chk input');
+      cb.addEventListener('change', ()=>{ dt.disabled = cb.checked; if(cb.checked) dt.value=''; });
+      box.appendChild(row);
+    }
+  }
+  function collectInstallments(){
+    return [...$('instRows').children].map(row => {
+      const amt = row.querySelector('.amt').value;
+      const cb  = row.querySelector('.chk input').checked;
+      const dt  = row.querySelector('.dt').value;
+      return { amount: amt ? Number(amt) : null, date: (cb || !dt) ? null : dt };
+    });
+  }
+
+  /* ---- events ---- */
+  $('manager').addEventListener('change', refreshAvailability);
+  $('date').addEventListener('change', refreshAvailability);
+  document.querySelectorAll('input[name=dur]').forEach(r => r.addEventListener('change', ()=>{ if(!$('startTime').disabled) buildStartOptions(); }));
+  document.querySelectorAll('input[name=fee]').forEach(r => r.addEventListener('change', updateFeeUI));
+  $('instCount').addEventListener('change', renderInstallments);
+
+  /* ---- submit ---- */
+  function showError(msg){ $('errBox').innerHTML = '<div class="banner err">'+msg+'</div>'; }
+  function clearError(){ $('errBox').innerHTML=''; }
+
+  $('submitBtn').addEventListener('click', function(){
+    clearError();
+    const fee = selectedFee();
+    const dealLink = $('dealLink').value.trim();
+    const payload = {
+      action: 'book',
+      consultantEmail: $('consultant').value,
+      managerEmail: $('manager').value,
+      program: $('program').value,
+      dealLink: dealLink,
+      date: $('date').value,
+      duration: selectedDuration(),
+      start: $('startTime').value,
+      feeType: fee,
+      amount: fee==='onetime' ? ($('oneAmount').value ? Number($('oneAmount').value) : null) : null,
+      installments: fee==='installments' ? collectInstallments() : [],
+      comments: $('comments').value
+    };
+
+    // quick client-side checks
+    if(!API_READY)               return showError('This form isn\u2019t connected yet. Ask your admin to paste the script link into the top of the page.');
+    if(!payload.consultantEmail) return showError('Please select your name.');
+    if(!payload.managerEmail)    return showError('Please select a manager.');
+    if(!payload.date)            return showError('Please pick a date.');
+    if(!payload.start)           return showError('Please pick a start time.');
+    if(!payload.program)         return showError('Please select a program.');
+    if(dealLink && !/^https?:\/\//i.test(dealLink)) return showError('The deal link should start with http:// or https://, or leave it blank.');
+    if(fee==='onetime' && !(payload.amount>0)) return showError('Please enter the one-time amount, or choose "Not quoted yet".');
+
+    const btn = $('submitBtn'); btn.disabled = true; btn.textContent = 'Sending\u2026';
+
+    // Sent as text/plain on purpose: this keeps it a "simple" request so the browser
+    // does NOT send a CORS preflight (which Apps Script cannot answer).
+    fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    })
+      .then(function(r){ return r.json(); })
+      .then(function(res){
+        if(res && res.ok){
+          $('formCard').classList.add('hidden');
+          const dc = $('doneCard'); dc.classList.remove('hidden');
+          $('doneMsg').innerHTML = 'Your request has been emailed to <b>'+res.managerName+'</b> for approval.';
+          $('doneWhen').textContent = res.when;
+          $('doneWarn').textContent = res.emailSent ? '' :
+            'Note: the request was saved but the approval email could not be sent. Please tell your admin.';
+          window.scrollTo({top:0, behavior:'smooth'});
+        } else {
+          btn.disabled=false; btn.textContent='Send request to manager';
+          showError((res && res.message) || 'Could not submit. Please try again.');
+          if(res && res.reason==='conflict'){ refreshAvailability(); $('whenGroup').scrollIntoView({behavior:'smooth', block:'center'}); }
+        }
+      })
+      .catch(function(err){
+        btn.disabled=false; btn.textContent='Send request to manager';
+        showError('Could not reach the server. Check your internet and that the form is connected, then try again.');
+      });
+  });
+
+  $('againBtn').addEventListener('click', function(){ location.reload(); });
+
+  updateFeeUI();
+</script>
+</body>
+</html>
