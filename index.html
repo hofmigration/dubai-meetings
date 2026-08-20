@@ -202,6 +202,15 @@
   .mv-tab.is-on{background:var(--navy);color:#fff}
   .mv-tab:focus-visible{outline:2px solid var(--royal);outline-offset:2px}
 
+  .mv-when{display:flex;gap:6px;margin-bottom:12px}
+  .mv-when button{flex:1;padding:10px;border:1px solid var(--line);border-radius:9px;
+    background:var(--card);font-family:var(--f-body);font-size:13.5px;font-weight:600;
+    color:var(--steel);cursor:pointer;transition:.14s}
+  .mv-when button:hover{background:var(--field);color:var(--navy)}
+  .mv-when button.is-on{background:var(--navy);border-color:var(--navy);color:#fff}
+  .mv-when button:focus-visible{outline:2px solid var(--royal);outline-offset:2px}
+  .mv-dt{display:flex;gap:10px;margin-top:4px}
+  .mv-dt input{flex:1;min-width:0}
   .mv-out{margin-top:22px;padding-top:22px;border-top:1px solid var(--line)}
   .mv-out-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:14px}
   .mv-tag{font-family:var(--f-mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
@@ -407,6 +416,21 @@
             </label>
           </div>
 
+          <div class="group">
+            <div class="glabel">When</div>
+            <div class="mv-when">
+              <button type="button" id="mvNow" class="is-on">Starting now</button>
+              <button type="button" id="mvLater">Pick a date and time</button>
+            </div>
+            <div id="mvSched" class="hidden">
+              <div class="mv-dt">
+                <input type="date" id="mvDate">
+                <input type="time" id="mvTime">
+              </div>
+              <p class="hint">All times are <strong>Dubai time</strong>, whatever your own clock says. The recorder joins at this time, so set it to when the call actually starts.</p>
+            </div>
+          </div>
+
           <button class="submit" id="mvBtn">Generate meeting link</button>
           <div id="mvErr"></div>
 
@@ -423,7 +447,7 @@
               <a class="mv-ghost" id="mvOpen" target="_blank" rel="noopener">Open in Meet</a>
               <a class="mv-ghost" id="mvCrm" target="_blank" rel="noopener">View in HubSpot</a>
             </div>
-            <p class="mv-note">Send this link to your client. A notetaker joins the call to record it, so admit it when it asks to join, and tell the client the call is being recorded.</p>
+            <p class="mv-note" id="mvNote"></p>
           </div>
 
         </div>
@@ -786,11 +810,35 @@
     b.textContent = on ? 'Generating\u2026' : 'Generate meeting link';
   }
 
+  /* ---- when: now vs scheduled ---- */
+  var scheduleMode = false;
+
+  function setMode(later) {
+    scheduleMode = later;
+    g('mvNow').classList.toggle('is-on', !later);
+    g('mvLater').classList.toggle('is-on', later);
+    g('mvSched').classList.toggle('hidden', !later);
+    clearErr();
+  }
+
+  g('mvNow').addEventListener('click', function () { setMode(false); });
+  g('mvLater').addEventListener('click', function () { setMode(true); });
+
   function generate() {
     clearErr();
     g('mvOut').classList.add('hidden');
 
     var url = g('mvUrl').value.trim();
+    var startAt = '';
+
+    if (scheduleMode) {
+      var d = g('mvDate').value;
+      var t = g('mvTime').value;
+      if (!d || !t) {
+        return fail('Pick both a date and a time, or switch back to Starting now.');
+      }
+      startAt = d + 'T' + t;
+    }
 
     if (!MEET_API_URL || MEET_API_URL.indexOf('PASTE_') === 0) {
       return fail('This tool is not connected yet. Ali needs to add the script link.');
@@ -809,7 +857,7 @@
       /* text/plain keeps this a simple request, which avoids the CORS
          preflight that Apps Script cannot answer. */
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ token: MEET_TOKEN, hubspotUrl: url })
+      body: JSON.stringify({ token: MEET_TOKEN, hubspotUrl: url, startAt: startAt })
     })
     .then(function (r) { return r.json(); })
     .then(function (d) {
@@ -820,6 +868,18 @@
       g('mvLink').textContent  = d.meetLink;
       g('mvOpen').href         = d.meetLink;
       g('mvCrm').href          = url;
+
+      var note = d.scheduled
+        ? 'Send this link to your client now. The call is set for <strong>' + d.startsAt +
+          '</strong> and the recorder joins then, so do not start early or the opening will not be captured.'
+        : 'Send this link to your client. The recorder joins <strong>' + d.recorderJoins + '</strong>.';
+
+      note += ' Tell the client at the start that the call is being recorded.';
+      if (!d.noteLogged) {
+        note += '<br><br>Note: this was not logged to HubSpot. Tell Ali.';
+      }
+      g('mvNote').innerHTML = note;
+
       g('mvOut').classList.remove('hidden');
       g('mvUrl').value = '';
     })
